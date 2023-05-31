@@ -1,5 +1,5 @@
 function Home() {
-    return <h1>{process.env.NEXT_PUBLIC_PRIVATE_MESSAGE}</h1>
+    return <h1>Página Home</h1>
 }
 
 export default Home;
