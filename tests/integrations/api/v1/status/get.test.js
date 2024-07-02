@@ -2,7 +2,7 @@ import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
-})
+});
 
 describe("GET /api/v1/status", () => {
   test("should return status 200", async () => {
