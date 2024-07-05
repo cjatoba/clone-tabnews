@@ -21,6 +21,7 @@ A project developed based on the [curso.dev](https://curso.dev) by Filipe Descha
    npm install
    ```
 4. Run application:
+
    ```bash
    npm run dev
 
