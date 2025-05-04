@@ -91,7 +91,6 @@ describe("POST /api/v1/users", () => {
         name: "ValidationError",
         message: "O e-mail informado já foi utilizado.",
         action: "Utilize outro e-mail.",
-
         status_code: 400,
       });
     });
