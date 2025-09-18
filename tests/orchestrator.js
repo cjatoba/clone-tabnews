@@ -1,13 +1,16 @@
-import retry from "async-retry";
 import { faker } from "@faker-js/faker";
+import retry from "async-retry";
 
-import database from "../infra/database";
 import migrator from "models/migrator";
-import user from "models/user";
 import session from "models/session";
+import user from "models/user";
+import database from "../infra/database";
+
+const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
 async function waitForAllServices() {
   await waitForWebServer();
+  await waitForEmailServer();
 
   async function waitForWebServer() {
     return retry(fetchStatusPage, {
@@ -19,6 +22,20 @@ async function waitForAllServices() {
 
       if (response.status !== 200) {
         throw new Error("Web server is not ready yet");
+      }
+    }
+  }
+
+  async function waitForEmailServer() {
+    return retry(fetchEmailPage, {
+      retries: 100,
+    });
+
+    async function fetchEmailPage() {
+      const response = await fetch(emailHttpUrl);
+
+      if (response.status !== 200) {
+        throw new Error("Email server is not ready yet");
       }
     }
   }
@@ -45,12 +62,35 @@ async function createSession(userId) {
   return await session.create(userId);
 }
 
+async function deleteAllEmails() {
+  await fetch(`${emailHttpUrl}/messages`, {
+    method: "DELETE",
+  });
+}
+
+async function getLastEmail() {
+  const emailListResponse = await fetch(`${emailHttpUrl}/messages`);
+  const emailListBody = await emailListResponse.json();
+  const lastEmailItem = emailListBody.pop();
+
+  const lastEmailTextResponse = await fetch(
+    `${emailHttpUrl}/messages/${lastEmailItem.id}.plain`,
+  );
+  const emailTextBody = await lastEmailTextResponse.text();
+
+  lastEmailItem.text = emailTextBody;
+
+  return lastEmailItem;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
   runPendingMigrations,
   createUser,
   createSession,
+  deleteAllEmails,
+  getLastEmail,
 };
 
 export default orchestrator;
