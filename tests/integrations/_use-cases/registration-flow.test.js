@@ -1,4 +1,4 @@
-const { default: password } = require("models/password");
+const { default: activation } = require("models/activation");
 const { default: orchestrator } = require("tests/orchestrator");
 
 beforeAll(async () => {
@@ -9,9 +9,9 @@ beforeAll(async () => {
 });
 
 describe("Use case: Registration flow (all successful)", () => {
+  let createUserResponseBody;
+
   test("Create user account", async () => {
-    const username = "RegistrationFlow";
-    const email = "registration.flow@mail.com";
     const createUserResponse = await fetch(
       "http://localhost:3000/api/v1/users",
       {
@@ -20,8 +20,8 @@ describe("Use case: Registration flow (all successful)", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username,
-          email,
+          username: "RegistrationFlow",
+          email: "registration.flow@mail.com",
           password: "RegistrationFlowPassword",
         }),
       },
@@ -29,12 +29,12 @@ describe("Use case: Registration flow (all successful)", () => {
 
     expect(createUserResponse.status).toBe(201);
 
-    const createUserResponseBody = await createUserResponse.json();
+    createUserResponseBody = await createUserResponse.json();
 
     expect(createUserResponseBody).toEqual({
       id: createUserResponseBody.id,
-      username,
-      email,
+      username: "RegistrationFlow",
+      email: "registration.flow@mail.com",
       features: ["read:activation_token"],
       password: createUserResponseBody.password,
       created_at: createUserResponseBody.created_at,
@@ -42,7 +42,19 @@ describe("Use case: Registration flow (all successful)", () => {
     });
   });
 
-  test("Receive activation email", async () => {});
+  test("Receive activation email", async () => {
+    const lastEmail = await orchestrator.getLastEmail();
+
+    const activationToken = await activation.findOneByUserId(
+      createUserResponseBody.id,
+    );
+
+    expect(lastEmail.sender).toBe("<contato@clonetabnews.com.br>");
+    expect(lastEmail.recipients[0]).toBe("<registration.flow@mail.com>");
+    expect(lastEmail.subject).toBe("Ative seu cadastro no Clone Tab News!");
+    expect(lastEmail.text).toContain("RegistrationFlow");
+    expect(lastEmail.text).toContain(activationToken.id);
+  });
 
   test("Activate account", async () => {});
 
