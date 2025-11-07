@@ -1,3 +1,4 @@
+const { default: webserver } = require("infra/webserver");
 const { default: activation } = require("models/activation");
 const { default: orchestrator } = require("tests/orchestrator");
 
@@ -45,15 +46,22 @@ describe("Use case: Registration flow (all successful)", () => {
   test("Receive activation email", async () => {
     const lastEmail = await orchestrator.getLastEmail();
 
-    const activationToken = await activation.findOneByUserId(
-      createUserResponseBody.id,
-    );
-
     expect(lastEmail.sender).toBe("<contato@clonetabnews.com.br>");
     expect(lastEmail.recipients[0]).toBe("<registration.flow@mail.com>");
     expect(lastEmail.subject).toBe("Ative seu cadastro no Clone Tab News!");
     expect(lastEmail.text).toContain("RegistrationFlow");
-    expect(lastEmail.text).toContain(activationToken.id);
+
+    const activationTokenId = await orchestrator.extractUUID(lastEmail.text);
+
+    expect(lastEmail.text).toContain(
+      `${webserver.origin}/cadastro/ativar/${activationTokenId}`,
+    );
+
+    const activationTokenObject =
+      await activation.findOneValidById(activationTokenId);
+
+    expect(activationTokenObject.user_id).toBe(createUserResponseBody.id);
+    expect(activationTokenObject.used_at).toBe(null);
   });
 
   test("Activate account", async () => {});
