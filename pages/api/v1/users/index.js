@@ -1,5 +1,6 @@
 import controller from "infra/controller";
 import activation from "models/activation";
+import authorization from "models/authorization";
 import user from "models/user.js";
 import { createRouter } from "next-connect";
 
@@ -17,5 +18,11 @@ async function postHandler(request, response) {
   const activationToken = await activation.create(newUser.id);
   await activation.sendEmailToUser(newUser, activationToken);
 
-  return response.status(201).json(newUser);
+  const secureOutputValues = authorization.filterOutput(
+    request.context.user,
+    "read:user",
+    newUser,
+  );
+
+  return response.status(201).json(secureOutputValues);
 }
