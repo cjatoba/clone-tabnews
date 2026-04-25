@@ -1,6 +1,5 @@
 const { default: webserver } = require("infra/webserver");
 const { default: activation } = require("models/activation");
-const { default: password } = require("models/password");
 const { default: user } = require("models/user");
 const { default: orchestrator } = require("tests/orchestrator");
 

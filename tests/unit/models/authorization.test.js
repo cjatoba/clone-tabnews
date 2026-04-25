@@ -1,6 +1,5 @@
 const { InternalServerError } = require("infra/errors");
 const { default: authorization } = require("models/authorization");
-const { default: password } = require("models/password");
 
 describe("models/authorization.js", () => {
   describe(".can()", () => {
