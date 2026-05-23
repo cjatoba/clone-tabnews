@@ -12,6 +12,7 @@ router.post(controller.canRequest("create:user"), postHandler);
 export default router.handler(controller.errorHandlers);
 
 async function postHandler(request, response) {
+  const userTryingToPost = request.context.user;
   const userInputValues = request.body;
   const newUser = await user.create(userInputValues);
 
@@ -19,7 +20,7 @@ async function postHandler(request, response) {
   await activation.sendEmailToUser(newUser, activationToken);
 
   const secureOutputValues = authorization.filterOutput(
-    request.context.user,
+    userTryingToPost,
     "read:user",
     newUser,
   );
