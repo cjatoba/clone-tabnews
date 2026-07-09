@@ -7,7 +7,7 @@ function getOrigin() {
     return `https://${process.env.VERCEL_URL}`;
   }
 
-  return "https://clonetabnews.com.br";
+  return `https://${process.env.APP_DOMAIN}`;
 }
 
 const webserver = {
